@@ -29,6 +29,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/mtneug/spate-demo/cmd/producer/static"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/net/websocket"
 )
@@ -80,6 +81,7 @@ func main() {
 	go producer()
 
 	http.Handle("/", http.HandlerFunc(indexHandler))
+	http.Handle("/smoothie.js", http.HandlerFunc(smoothieJSHandler))
 	http.Handle("/consume", http.HandlerFunc(consumeHandler))
 	http.Handle("/stats", websocket.Handler(statsHandler))
 	http.Handle("/metrics", prometheus.Handler())
@@ -87,10 +89,15 @@ func main() {
 	log.Fatalln(http.ListenAndServe(":5000", nil))
 }
 
+var (
+	amount    = 1
+	variation = 2
+)
+
 func producer() {
 	for {
 		mutex.Lock()
-		store = store + rand.Intn(10)
+		store = store + amount + rand.Intn(variation+1)
 		metric.Set(float64(store))
 		cond.Broadcast()
 		mutex.Unlock()
@@ -99,8 +106,12 @@ func producer() {
 	}
 }
 
+func smoothieJSHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, static.SmoothieJS)
+}
+
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, indexPage)
+	fmt.Fprint(w, static.IndexPage)
 }
 
 func consumeHandler(w http.ResponseWriter, r *http.Request) {
@@ -166,62 +177,3 @@ func updateActualReplicas() error {
 	actualReplicas = uint64(len(container))
 	return nil
 }
-
-const indexPage = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>spate demo</title>
-
-  <script type="text/javascript" src="http://smoothiecharts.org/smoothie.js"></script>
-  <script type="text/javascript">
-    var store = new TimeSeries();
-    var desiredReplicas = new TimeSeries();
-    var actualReplicas = new TimeSeries();
-
-    var ws = new WebSocket("ws://" + location.host + "/stats");
-    ws.onmessage = function(e) {
-      var data = JSON.parse(e.data);
-      var time = new Date().getTime()
-      store.append(time, data.store);
-      desiredReplicas.append(time, data.desiredReplicas);
-      actualReplicas.append(time, data.actualReplicas);
-    };
-
-    function init() {
-      var storeChart = new SmoothieChart({
-        minValue: 0
-      });
-      storeChart.addTimeSeries(store, {
-        strokeStyle: 'rgba(255, 0, 0, 1)',
-        fillStyle: 'rgba(255, 0, 0, 0.2)',
-        lineWidth: 4
-      });
-      storeChart.streamTo(document.getElementById("storeChart"), 1000);
-
-      var replicaChart = new SmoothieChart({
-        minValue: 0,
-        maxValue: 25
-      });
-      replicaChart.addTimeSeries(desiredReplicas, {
-        strokeStyle: 'rgba(0, 0, 255, 1)',
-        fillStyle: 'rgba(0, 0, 255, 0.2)',
-        lineWidth: 4
-      });
-      replicaChart.addTimeSeries(actualReplicas, {
-        strokeStyle: 'rgba(0, 255, 0, 1)',
-        fillStyle: 'rgba(0, 255, 0, 0.2)',
-        lineWidth: 4
-      });
-      replicaChart.streamTo(document.getElementById("replicaChart"), 1000);
-    }
-  </script>
-</head>
-<body onload="init()">
-  <h2>Workload</h2>
-  <canvas id="storeChart" width="1200" height="400"></canvas>
-  <h2>Number of worker</h2>
-  <canvas id="replicaChart" width="1200" height="400"></canvas>
-</body>
-</html>
-`
