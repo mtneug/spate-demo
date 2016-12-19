@@ -37,7 +37,8 @@ const IndexPage = `<!DOCTYPE html>
 
     function init() {
       var storeChart = new SmoothieChart({
-        minValue: 0
+        minValue: 0,
+        maxValue: 400
       });
       storeChart.addTimeSeries(store, {
         strokeStyle: 'rgba(255, 0, 0, 1)',
