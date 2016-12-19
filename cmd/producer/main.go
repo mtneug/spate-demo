@@ -46,6 +46,9 @@ var (
 	actualReplicas  uint64
 	consumerSrvID   string
 
+	amount    = 7
+	variation = 2
+
 	metric prometheus.Gauge
 )
 
@@ -82,17 +85,13 @@ func main() {
 
 	http.Handle("/", http.HandlerFunc(indexHandler))
 	http.Handle("/smoothie.js", http.HandlerFunc(smoothieJSHandler))
+	http.Handle("/config", http.HandlerFunc(configHandler))
 	http.Handle("/consume", http.HandlerFunc(consumeHandler))
 	http.Handle("/stats", websocket.Handler(statsHandler))
 	http.Handle("/metrics", prometheus.Handler())
 
 	log.Fatalln(http.ListenAndServe(":5000", nil))
 }
-
-var (
-	amount    = 1
-	variation = 2
-)
 
 func producer() {
 	for {
@@ -106,12 +105,29 @@ func producer() {
 	}
 }
 
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, static.IndexPage)
+}
+
 func smoothieJSHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, static.SmoothieJS)
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, static.IndexPage)
+func configHandler(w http.ResponseWriter, r *http.Request) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	aStr := r.URL.Query().Get("amount")
+	a, err := strconv.ParseInt(aStr, 10, 32)
+	if err == nil {
+		amount = int(a)
+	}
+
+	vStr := r.URL.Query().Get("variation")
+	v, err := strconv.ParseInt(vStr, 10, 32)
+	if err == nil {
+		variation = int(v)
+	}
 }
 
 func consumeHandler(w http.ResponseWriter, r *http.Request) {
