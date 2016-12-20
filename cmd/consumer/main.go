@@ -26,7 +26,7 @@ func main() {
 	for {
 		_, err := http.Get(url)
 		if err != nil {
-			log.Println(err)
+			log.Print(err)
 		}
 
 		<-time.After(time.Second)

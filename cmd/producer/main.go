@@ -56,16 +56,15 @@ func init() {
 	var err error
 	docker, err = client.NewEnvClient()
 	if err != nil {
-		log.Fatalln("Connection to Docker failed")
+		log.Fatal("Connection to Docker failed")
 	}
 
 	args := filters.NewArgs()
 	args.Add("name", consumerSrvName)
 	srvs, err := docker.ServiceList(context.TODO(), types.ServiceListOptions{Filter: args})
 	if err != nil || len(srvs) == 0 {
-		log.Fatalln("Connection to Docker failed")
+		log.Fatal("Service not found")
 	}
-	fmt.Printf("%#v\n", srvs)
 	consumerSrvID = srvs[0].ID
 
 	store = 40
@@ -90,7 +89,7 @@ func main() {
 	http.Handle("/stats", websocket.Handler(statsHandler))
 	http.Handle("/metrics", prometheus.Handler())
 
-	log.Fatalln(http.ListenAndServe(":5000", nil))
+	log.Fatal(http.ListenAndServe(":5000", nil))
 }
 
 func producer() {
@@ -148,12 +147,12 @@ func statsHandler(ws *websocket.Conn) {
 	for {
 		err := updateDesiredReplicas()
 		if err != nil {
-			log.Println(err.Error())
+			log.Print(err.Error())
 		}
 
 		err = updateActualReplicas()
 		if err != nil {
-			log.Println(err.Error())
+			log.Print(err.Error())
 		}
 
 		mutex.Lock()
