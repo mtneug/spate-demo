@@ -10,7 +10,21 @@ $ docker network create -d overlay spate-demo
 $ docker service create \
     --name consumer \
     --network spate-demo \
-    --replicas 2 \
+    --label "de.mtneug.spate=enable" \
+    --label "de.mtneug.spate.autoscaler.period=2s" \
+    --label "de.mtneug.spate.autoscaler.cooldown.scaled_up=5s" \
+    --label "de.mtneug.spate.autoscaler.cooldown.scaled_down=5s" \
+    --label "de.mtneug.spate.replicas.min=1" \
+    --label "de.mtneug.spate.replicas.max=25" \
+    --label "de.mtneug.spate.metric.demo.observer.period=1s" \
+    --label "de.mtneug.spate.metric.demo.type=prometheus" \
+    --label "de.mtneug.spate.metric.demo.kind=system" \
+    --label "de.mtneug.spate.metric.demo.prometheus.endpoint=http://producer:5000/metrics" \
+    --label "de.mtneug.spate.metric.demo.prometheus.name=spate_demo_store" \
+    --label "de.mtneug.spate.metric.demo.aggregation.method=avg" \
+    --label "de.mtneug.spate.metric.demo.aggregation.amount=30" \
+    --label "de.mtneug.spate.metric.demo.target=5" \
+    --replicas 5 \
     mtneug/spate-demo consumer
 
 $ docker service create \
