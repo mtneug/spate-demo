@@ -46,8 +46,8 @@ var (
 	actualReplicas  uint64
 	consumerSrvID   string
 
-	amount    = 7
-	variation = 2
+	amount    = 5
+	variation = 1
 
 	metric prometheus.Gauge
 )

@@ -83,10 +83,10 @@ const IndexPage = `<!DOCTYPE html>
 
   <p>
     <label for="amount">amount: </label>
-    <input type="text" id="amount" name="amount" value="7">
+    <input type="text" id="amount" name="amount" value="5">
 
     <label for="variation">variation: </label>
-    <input type="text" id="variation" name="variation" value="2">
+    <input type="text" id="variation" name="variation" value="1">
 
     <button onclick="configure()">configure</button>
   </p>
