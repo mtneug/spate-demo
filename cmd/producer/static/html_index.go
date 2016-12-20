@@ -63,10 +63,34 @@ const IndexPage = `<!DOCTYPE html>
       });
       replicaChart.streamTo(document.getElementById("replicaChart"), 1000);
     }
+
+    function configure() {
+      var amount    = document.getElementById("amount").value,
+          variation = document.getElementById("variation").value;
+
+      fetch(
+        "/config?amount="+amount+"&variation="+variation
+      ).then(function(resp) {
+        console.log(resp);
+      }).catch(function(err) {
+        console.log(err);
+      });
+    }
   </script>
 </head>
 <body onload="init()">
   <h2>Workload</h2>
+
+  <p>
+    <label for="amount">amount: </label>
+    <input type="text" id="amount" name="amount" value="7">
+
+    <label for="variation">variation: </label>
+    <input type="text" id="variation" name="variation" value="2">
+
+    <button onclick="configure()">configure</button>
+  </p>
+
   <canvas id="storeChart" width="1200" height="400"></canvas>
   <h2>Number of worker</h2>
   <canvas id="replicaChart" width="1200" height="400"></canvas>
