@@ -28,6 +28,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/mtneug/spate-demo/cmd/producer/static"
 	"github.com/prometheus/client_golang/prometheus"
@@ -44,7 +45,6 @@ var (
 	docker          *client.Client
 	desiredReplicas uint64
 	actualReplicas  uint64
-	consumerSrvID   string
 
 	amount    = 5
 	variation = 1
@@ -58,14 +58,6 @@ func init() {
 	if err != nil {
 		log.Fatal("Connection to Docker failed")
 	}
-
-	args := filters.NewArgs()
-	args.Add("name", consumerSrvName)
-	srvs, err := docker.ServiceList(context.TODO(), types.ServiceListOptions{Filter: args})
-	if err != nil || len(srvs) == 0 {
-		log.Fatal("Service not found")
-	}
-	consumerSrvID = srvs[0].ID
 
 	store = 40
 	mutex = &sync.Mutex{}
@@ -168,7 +160,7 @@ func statsHandler(ws *websocket.Conn) {
 }
 
 func updateDesiredReplicas() error {
-	srv, _, err := docker.ServiceInspectWithRaw(context.TODO(), consumerSrvID)
+	srv, _, err := docker.ServiceInspectWithRaw(context.TODO(), consumerSrvName)
 	if err != nil {
 		return errors.New("Counting desiredReplicas failed")
 	}
@@ -183,12 +175,20 @@ func updateDesiredReplicas() error {
 
 func updateActualReplicas() error {
 	args := filters.NewArgs()
-	args.Add("label", "com.docker.swarm.service.id="+consumerSrvID)
-	container, err := docker.ContainerList(context.TODO(), types.ContainerListOptions{Filter: args})
+	args.Add("service", consumerSrvName)
+	args.Add("desired-state", "running")
+
+	tasks, err := docker.TaskList(context.TODO(), types.TaskListOptions{Filter: args})
 	if err != nil {
 		return errors.New("Counting actualReplicas failed")
 	}
 
-	actualReplicas = uint64(len(container))
+	actualReplicas = 0
+	for _, t := range tasks {
+		if t.Status.State == swarm.TaskStateRunning {
+			actualReplicas++
+		}
+	}
+
 	return nil
 }

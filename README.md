@@ -8,6 +8,15 @@ This example producer-consumer application demonstrates the Docker Swarm autosca
 $ docker network create -d overlay spate-demo
 
 $ docker service create \
+    --name producer \
+    --network spate-demo \
+    --constraint "node.role == manager" \
+    --publish "5000:5000" \
+    --mount "type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock" \
+    --replicas 1 \
+    mtneug/spate-demo producer
+
+$ docker service create \
     --name consumer \
     --network spate-demo \
     --label "de.mtneug.spate=enable" \
@@ -26,14 +35,6 @@ $ docker service create \
     --label "de.mtneug.spate.metric.demo.target=5" \
     --replicas 5 \
     mtneug/spate-demo consumer
-
-$ docker service create \
-    --name producer \
-    --network spate-demo \
-    --publish "5000:5000" \
-    --mount "type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock" \
-    --replicas 1 \
-    mtneug/spate-demo producer
 ```
 
 ## License
