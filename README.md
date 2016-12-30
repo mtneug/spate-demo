@@ -35,6 +35,14 @@ $ docker service create \
     --label "de.mtneug.spate.metric.demo.target=5" \
     --replicas 5 \
     mtneug/spate-demo consumer
+
+$ docker service create \
+    --name spate \
+    --network spate-demo \
+    --constraint "node.role == manager" \
+    --mount "type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock" \
+    --replicas 1 \
+    mtneug/spate
 ```
 
 ## License
