@@ -31,8 +31,8 @@ $ docker service create \
     --label "de.mtneug.spate.metric.demo.prometheus.endpoint=http://producer:5000/metrics" \
     --label "de.mtneug.spate.metric.demo.prometheus.name=spate_demo_store" \
     --label "de.mtneug.spate.metric.demo.aggregation.method=avg" \
-    --label "de.mtneug.spate.metric.demo.aggregation.amount=30" \
-    --label "de.mtneug.spate.metric.demo.target=5" \
+    --label "de.mtneug.spate.metric.demo.aggregation.amount=5" \
+    --label "de.mtneug.spate.metric.demo.target=10" \
     --replicas 5 \
     mtneug/spate-demo consumer
 
