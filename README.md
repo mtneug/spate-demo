@@ -47,4 +47,4 @@ $ docker service create \
 
 ## License
 
-MIT (C) Matthias Neugebauer
+MIT (c) Matthias Neugebauer
