@@ -178,7 +178,7 @@ func updateActualReplicas() error {
 	args.Add("service", consumerSrvName)
 	args.Add("desired-state", "running")
 
-	tasks, err := docker.TaskList(context.TODO(), types.TaskListOptions{Filter: args})
+	tasks, err := docker.TaskList(context.TODO(), types.TaskListOptions{Filters: args})
 	if err != nil {
 		return errors.New("Counting actualReplicas failed")
 	}
