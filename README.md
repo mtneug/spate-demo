@@ -31,8 +31,8 @@ $ docker service create \
     --label "de.mtneug.spate.autoscaler.period=2s" \
     --label "de.mtneug.spate.autoscaler.cooldown.scaled_up=5s" \
     --label "de.mtneug.spate.autoscaler.cooldown.scaled_down=5s" \
-    --label "de.mtneug.spate.replicas.min=1" \
-    --label "de.mtneug.spate.replicas.max=25" \
+    --label "de.mtneug.spate.replica.min=1" \
+    --label "de.mtneug.spate.replica.max=25" \
     --label "de.mtneug.spate.metric.demo.observer.period=1s" \
     --label "de.mtneug.spate.metric.demo.type=prometheus" \
     --label "de.mtneug.spate.metric.demo.kind=system" \
