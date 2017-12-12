@@ -26,10 +26,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/client"
+	"docker.io/go-docker"
+	"docker.io/go-docker/api/types"
+	"docker.io/go-docker/api/types/filters"
+	"docker.io/go-docker/api/types/swarm"
 	"github.com/mtneug/spate-demo/cmd/producer/static"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/net/websocket"
@@ -42,7 +42,7 @@ var (
 	mutex *sync.Mutex
 	cond  *sync.Cond
 
-	docker          *client.Client
+	client          *docker.Client
 	desiredReplicas uint64
 	actualReplicas  uint64
 
@@ -54,7 +54,7 @@ var (
 
 func init() {
 	var err error
-	docker, err = client.NewEnvClient()
+	client, err = docker.NewEnvClient()
 	if err != nil {
 		log.Fatal("Connection to Docker failed")
 	}
@@ -160,7 +160,7 @@ func statsHandler(ws *websocket.Conn) {
 }
 
 func updateDesiredReplicas() error {
-	srv, _, err := docker.ServiceInspectWithRaw(context.TODO(), consumerSrvName)
+	srv, _, err := client.ServiceInspectWithRaw(context.TODO(), consumerSrvName, types.ServiceInspectOptions{})
 	if err != nil {
 		return errors.New("Counting desiredReplicas failed")
 	}
@@ -178,7 +178,7 @@ func updateActualReplicas() error {
 	args.Add("service", consumerSrvName)
 	args.Add("desired-state", "running")
 
-	tasks, err := docker.TaskList(context.TODO(), types.TaskListOptions{Filters: args})
+	tasks, err := client.TaskList(context.TODO(), types.TaskListOptions{Filters: args})
 	if err != nil {
 		return errors.New("Counting actualReplicas failed")
 	}
